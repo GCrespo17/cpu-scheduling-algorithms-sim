@@ -16,6 +16,11 @@ include_directories(libs)
 # Asegúrate de incluir main.cpp, ya que ahí estará tu servidor Crow.
 add_executable(CPUSimulator
     main.cpp         # Archivo main.cpp que contiene la lógica del servidor Crow
+    scheduler.cpp
+    algorithms/fcfs.cpp
+    algorithms/priority.cpp
+    algorithms/round_robin.cpp
+    algorithms/sjf.cpp
 )
 
 target_link_libraries(CPUSimulator
