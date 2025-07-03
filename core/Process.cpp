@@ -1,3 +1,6 @@
+#ifndef PROCESS_H
+#define PROCESS_H
+
 #include <iostream> 
 class Process {
 private:
@@ -136,3 +139,6 @@ public:
                   << ", Response Time: " << responseTime << std::endl;
     }
 };
+
+#ifndef PROCESS_H
+#define PROCESS_H
