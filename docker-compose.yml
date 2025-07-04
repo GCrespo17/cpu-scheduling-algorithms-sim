@@ -1,5 +1,3 @@
-
-
 # Sección para definir los diferentes servicios (contenedores) de tu aplicación
 services:
   ui:
@@ -7,13 +5,13 @@ services:
     container_name: vue_frontend
     # Mapea el puerto 5173 del host al puerto 5173 del contenedor de Vite
     ports:
-      - "5173:5173" 
+      - "5173:5173"
     depends_on:
       - core
     environment:
       # Pasa la URL del backend al contenedor del frontend
-      VUE_APP_BACKEND_URL: http://core:8080 
-      VITE_PORT: 5173 
+      VUE_APP_BACKEND_URL: http://core:8081
+      VITE_PORT: 5173
 
   # Define el servicio del backend (tu aplicación C++)
   core:
@@ -26,7 +24,5 @@ services:
     # Asigna un nombre específico al contenedor para facilitar su identificación
     container_name: cpp_backend
     # Mapea los puertos del host a los puertos del contenedor
-    # "8080:8080" significa que el puerto 8080 de tu máquina (host) se mapea al puerto 8080 del contenedor
-    # Esto te permitirá acceder a tu API de C++ en http://localhost:8080
     ports:
-      - "8080:8080"
+      - "8081:8081"
