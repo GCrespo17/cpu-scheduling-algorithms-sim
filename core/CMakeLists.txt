@@ -10,14 +10,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Añade el directorio 'libs' a la ruta de búsqueda de includes
-include_directories(libs) 
+# Añade el directorio 'algorithms' a la ruta de búsqueda de includes
+include_directories(
+    libs 
+    algorithms
+    process-metrics) 
 
 # Añade el ejecutable principal de tu simulador.
 # Asegúrate de incluir main.cpp, ya que ahí estará tu servidor Crow.
 add_executable(CPUSimulator
-    main.cpp         # Archivo main.cpp que contiene la lógica del servidor Crow
-    scheduler.cpp
-    algorithms/fcfs.cpp
+    scheduler.cpp   #El archivo que contiene la logica de crow y ejecuta los procesos
     algorithms/priority.cpp
     algorithms/round_robin.cpp
     algorithms/sjf.cpp
