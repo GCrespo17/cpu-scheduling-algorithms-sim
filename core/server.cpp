@@ -114,7 +114,7 @@ int main(){
         }
 
         std::thread([processes, algorithm, quantum]() mutable{
-            schedule(processes, algorithm, quantum, notifyClients);
+            schedule(processes, algorithm, quantum, notifyClients); //Funcion que ejecuta los algoritmos de planificacion segun los parametros dados
         }).detach();
 
         return crow::response(200, "Simulation Started");
