@@ -1,18 +1,21 @@
 <template>
   <div id="app">
     <div class="container">
-      <AppHeader />
+      <AppHeader :algorithm="simulationConfig.algorithm" />
       
       <div class="content">
         <!-- Formulario para agregar procesos -->
         <ProcessForm 
           @add-process="addProcess"
           @clear-processes="clearProcesses"
+          @algorithm-changed="updateSimulationConfig"
         />
 
         <!-- Lista de procesos -->
         <ProcessList 
           :processes="processes"
+          :algorithm="simulationConfig.algorithm"
+          :quantum="simulationConfig.quantum"
           @start-simulation="startSimulation"
           v-if="processes.length > 0"
         />
@@ -23,6 +26,7 @@
           :process-states="processStates"
           :message="message"
           :message-type="messageType"
+          :algorithm="simulationConfig.algorithm"
           v-if="simulationRunning || processStates.length > 0"
         />
       </div>
@@ -54,6 +58,12 @@ export default {
       // Lista de procesos
       processes: [],
       
+      // Configuración de simulación
+      simulationConfig: {
+        algorithm: 'FCFS',
+        quantum: 2
+      },
+      
       // Estados de simulación
       processStates: [],
       simulationRunning: false,
@@ -73,6 +83,11 @@ export default {
   },
   
   methods: {
+    updateSimulationConfig(config) {
+      this.simulationConfig = { ...config };
+      console.log('Configuración actualizada:', this.simulationConfig);
+    },
+    
     addProcess(processData) {
       // Verificar si el ID ya existe
       if (this.processes.some(p => p.id === processData.id)) {
@@ -102,17 +117,27 @@ export default {
       this.simulationRunning = true;
       this.processStates = [];
       
+      // Preparar datos para enviar al backend
+      const simulationData = {
+        processes: this.processes,
+        algorithm: this.simulationConfig.algorithm,
+        quantum: this.simulationConfig.quantum
+      };
+      
       try {
         const response = await fetch('http://localhost:8081/api/processes', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(this.processes)
+          body: JSON.stringify(simulationData)
         });
         
         if (response.ok) {
-          this.showMessage('Simulación iniciada', 'alert-success');
+          this.showMessage(
+            `Simulación ${this.getAlgorithmName(this.simulationConfig.algorithm)} iniciada`, 
+            'alert-success'
+          );
         } else {
           throw new Error('Error al iniciar simulación');
         }
@@ -120,6 +145,16 @@ export default {
         this.showMessage('Error al conectar con el servidor: ' + error.message, 'alert-error');
         this.simulationRunning = false;
       }
+    },
+    
+    getAlgorithmName(algorithm) {
+      const names = {
+        'FCFS': 'FCFS',
+        'SJF': 'SJF',
+        'RR': 'Round Robin',
+        'PRIORITY': 'Priority'
+      };
+      return names[algorithm] || algorithm;
     },
     
     connectWebSocket() {
@@ -204,7 +239,7 @@ body {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 100rem;
   margin: 0 auto;
   background: white;
   border-radius: 20px;
