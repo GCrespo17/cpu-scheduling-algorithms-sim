@@ -1,123 +1,237 @@
-<script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import axios from 'axios'; // Importa Axios
-import HelloWorld from './components/HelloWorld.vue'; // Asegúrate de que esta ruta sea correcta
-
-const messageFromBackend = ref('Cargando mensaje del backend...');
-const wsMessages = ref([]); // Para almacenar los mensajes recibidos por WebSocket
-const wsInput = ref(''); // Para el input del mensaje a enviar por WebSocket
-let ws = null; // Variable para la instancia de WebSocket
-
-// La URL base de tu backend
-const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL || 'http://localhost:8081';
-const WEBSOCKET_URL = `ws://localhost:8081/ws`; // URL de tu servidor WebSocket
-
-// Función para obtener el mensaje del backend (HTTP)
-const fetchMessage = async () => {
-  try {
-    const response = await axios.get(`${BACKEND_URL}/hello`);
-    messageFromBackend.value = response.data.message;
-  } catch (error) {
-    console.error('Error al conectar con el backend HTTP:', error);
-    messageFromBackend.value = 'Error al cargar el mensaje HTTP: ' + error.message;
-  }
-};
-
-// Función para inicializar la conexión WebSocket
-const initWebSocket = () => {
-  ws = new WebSocket(WEBSOCKET_URL);
-
-  ws.onopen = () => {
-    wsMessages.value.push({ type: 'status', text: 'Conectado al servidor WebSocket.' });
-    console.log('Conectado al servidor WebSocket');
-  };
-
-  ws.onmessage = (event) => {
-    wsMessages.value.push({ type: 'received', text: event.data });
-    console.log('Mensaje del servidor (WS):', event.data);
-  };
-
-  ws.onclose = (event) => {
-    wsMessages.value.push({ type: 'status', text: `Desconectado del servidor WebSocket. Código: ${event.code}, Razón: ${event.reason}` });
-    console.log('Desconectado del servidor WebSocket', event);
-  };
-
-  ws.onerror = (error) => {
-    wsMessages.value.push({ type: 'error', text: `Error en WebSocket: ${error.message}` });
-    console.error('Error en WebSocket:', error);
-  };
-};
-
-// Función para enviar un mensaje a través del WebSocket
-const sendMessage = () => {
-  if (ws && ws.readyState === WebSocket.OPEN && wsInput.value.trim() !== '') {
-    ws.send(wsInput.value);
-    wsMessages.value.push({ type: 'sent', text: wsInput.value });
-    wsInput.value = ''; // Limpiar el input
-  } else if (ws && ws.readyState !== WebSocket.OPEN) {
-    wsMessages.value.push({ type: 'error', text: 'WebSocket no está abierto. Intentando reconectar...' });
-    console.warn('WebSocket no está abierto. Intentando reconectar...');
-    initWebSocket(); // Intentar reconectar
-  } else if (wsInput.value.trim() === '') {
-    wsMessages.value.push({ type: 'info', text: 'No puedes enviar un mensaje vacío.' });
-  }
-};
-
-// Llama a las funciones cuando el componente se monta
-onMounted(() => {
-  fetchMessage();
-  initWebSocket();
-});
-
-// Cierra la conexión WebSocket cuando el componente se desmonta
-onBeforeUnmount(() => {
-  if (ws) {
-    ws.close();
-  }
-});
-</script>
-
 <template>
-  <div>
-    <h1>Simulador de Planificación de CPU</h1>
-    <p>Mensaje del Backend (HTTP): <strong>{{ messageFromBackend }}</strong></p>
+  <div id="app">
+    <div class="container">
+      <AppHeader />
+      
+      <div class="content">
+        <!-- Formulario para agregar procesos -->
+        <ProcessForm 
+          @add-process="addProcess"
+          @clear-processes="clearProcesses"
+        />
 
-    <img alt="Vue logo" class="logo" src="./assets/vue.svg" width="125" height="125" />
-    <HelloWorld msg="Bienvenido a tu Simulador" />
+        <!-- Lista de procesos -->
+        <ProcessList 
+          :processes="processes"
+          @start-simulation="startSimulation"
+          v-if="processes.length > 0"
+        />
 
-    <hr style="margin: 20px 0;">
-
-    <h2>Comunicación WebSocket</h2>
-    <div id="ws-messages" style="border: 1px solid #ccc; padding: 10px; min-height: 150px; max-height: 300px; overflow-y: auto; margin-bottom: 10px; background-color: #f9f9f9; border-radius: 8px;">
-      <p v-for="(msg, index) in wsMessages" :key="index" :style="{ color: msg.type === 'status' ? 'green' : (msg.type === 'error' ? 'red' : (msg.type === 'sent' ? 'blue' : 'black')) }">
-        <strong v-if="msg.type === 'received'">Servidor (WS):</strong>
-        <strong v-else-if="msg.type === 'sent'">Tú (WS):</strong>
-        <strong v-else-if="msg.type === 'status'">Estado:</strong>
-        <strong v-else-if="msg.type === 'error'">Error:</strong>
-        {{ msg.text }}
-      </p>
+        <!-- Área de simulación -->
+        <SimulationArea 
+          :simulation-running="simulationRunning"
+          :process-states="processStates"
+          :message="message"
+          :message-type="messageType"
+          v-if="simulationRunning || processStates.length > 0"
+        />
+      </div>
     </div>
-    <input type="text" v-model="wsInput" @keyup.enter="sendMessage" placeholder="Escribe un mensaje WebSocket..." style="width: 70%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-    <button @click="sendMessage" style="padding: 8px 15px; margin-left: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Enviar WS</button>
+
+    <!-- Indicador de conexión -->
+    <ConnectionStatus :ws-connected="wsConnected" />
   </div>
 </template>
 
-<style scoped>
-/* Tus estilos CSS aquí */
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+<script>
+import AppHeader from './components/AppHeader.vue'
+import ProcessForm from './components/ProcessForm.vue'
+import ProcessList from './components/ProcessList.vue'
+import SimulationArea from './components/SimulationArea.vue'
+import ConnectionStatus from './components/ConnectionStatus.vue'
 
-@media (min-width: 1024px) {
-  .logo {
-    margin: 0 2rem 0 0;
+export default {
+  name: 'App',
+  components: {
+    AppHeader,
+    ProcessForm,
+    ProcessList,
+    SimulationArea,
+    ConnectionStatus
+  },
+  data() {
+    return {
+      // Lista de procesos
+      processes: [],
+      
+      // Estados de simulación
+      processStates: [],
+      simulationRunning: false,
+      
+      // WebSocket
+      ws: null,
+      wsConnected: false,
+      
+      // Mensajes
+      message: '',
+      messageType: 'alert-success'
+    }
+  },
+  
+  mounted() {
+    this.connectWebSocket();
+  },
+  
+  methods: {
+    addProcess(processData) {
+      // Verificar si el ID ya existe
+      if (this.processes.some(p => p.id === processData.id)) {
+        this.showMessage('El ID del proceso ya existe', 'alert-error');
+        return false;
+      }
+      
+      // Agregar proceso
+      this.processes.push({...processData});
+      this.showMessage('Proceso agregado exitosamente', 'alert-success');
+      return true;
+    },
+    
+    clearProcesses() {
+      this.processes = [];
+      this.processStates = [];
+      this.simulationRunning = false;
+      this.showMessage('Lista de procesos limpiada', 'alert-success');
+    },
+    
+    async startSimulation() {
+      if (this.processes.length === 0) {
+        this.showMessage('No hay procesos para simular', 'alert-error');
+        return;
+      }
+      
+      this.simulationRunning = true;
+      this.processStates = [];
+      
+      try {
+        const response = await fetch('http://localhost:8081/api/processes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(this.processes)
+        });
+        
+        if (response.ok) {
+          this.showMessage('Simulación iniciada', 'alert-success');
+        } else {
+          throw new Error('Error al iniciar simulación');
+        }
+      } catch (error) {
+        this.showMessage('Error al conectar con el servidor: ' + error.message, 'alert-error');
+        this.simulationRunning = false;
+      }
+    },
+    
+    connectWebSocket() {
+      try {
+        this.ws = new WebSocket('ws://localhost:8081/ws');
+        
+        this.ws.onopen = () => {
+          this.wsConnected = true;
+          console.log('WebSocket conectado');
+        };
+        
+        this.ws.onmessage = (event) => {
+          try {
+            const processData = JSON.parse(event.data);
+            this.updateProcessState(processData);
+          } catch (error) {
+            console.error('Error al parsear mensaje:', error);
+          }
+        };
+        
+        this.ws.onclose = () => {
+          this.wsConnected = false;
+          console.log('WebSocket desconectado');
+          // Reconectar después de 3 segundos
+          setTimeout(() => {
+            this.connectWebSocket();
+          }, 3000);
+        };
+        
+        this.ws.onerror = (error) => {
+          console.error('Error en WebSocket:', error);
+        };
+      } catch (error) {
+        console.error('Error al conectar WebSocket:', error);
+      }
+    },
+    
+    updateProcessState(processData) {
+      const existingIndex = this.processStates.findIndex(p => p.id === processData.id);
+      
+      if (existingIndex !== -1) {
+        // Actualizar proceso existente
+        this.processStates[existingIndex] = processData;
+      } else {
+        // Agregar nuevo proceso
+        this.processStates.push(processData);
+      }
+      
+      // Verificar si la simulación terminó
+      if (processData.state === 3) { // TERMINATED
+        const allTerminated = this.processStates.every(p => p.state === 3);
+        if (allTerminated) {
+          this.simulationRunning = false;
+          this.showMessage('Simulación completada', 'alert-success');
+        }
+      }
+    },
+    
+    showMessage(text, type) {
+      this.message = text;
+      this.messageType = type;
+      setTimeout(() => {
+        this.message = '';
+      }, 3000);
+    }
   }
 }
+</script>
 
-/* Estilos adicionales para la sección WebSocket */
-#ws-messages p {
-  margin: 5px 0;
-  word-wrap: break-word; /* Para asegurar que los mensajes largos se ajusten */
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.content {
+  padding: 40px;
+}
+
+.alert {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 </style>
