@@ -1,0 +1,32 @@
+# Build outputs
+build/
+*.o
+*.so
+*.a
+*.exe
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+README.md
+
+# Logs
+*.log
+
+# Documentación
+docs/
+*.md
+
+# Tests
+test/
+tests/
