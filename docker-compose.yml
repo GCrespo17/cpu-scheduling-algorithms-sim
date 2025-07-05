@@ -12,6 +12,12 @@ services:
       # Pasa la URL del backend al contenedor del frontend
       VUE_APP_BACKEND_URL: http://core:8081
       VITE_PORT: 5173
+    volumes:
+      - ./ui:/app
+      - /app/node_modules  # Evita conflictos con node_modules local
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    networks:
+     - app-network
 
   # Define el servicio del backend (tu aplicación C++)
   core:
@@ -26,3 +32,13 @@ services:
     # Mapea los puertos del host a los puertos del contenedor
     ports:
       - "8081:8081"
+    # Para desarrollo: monta el código fuente
+    volumes:
+      - ./core:/app
+      - /app/build  # Evita conflictos con build local
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
