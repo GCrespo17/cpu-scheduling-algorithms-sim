@@ -1,16 +1,13 @@
 # Se usara Ubuntu 24.04 LTS Sistema Operativo base para mi contenedor
 FROM ubuntu:24.04
 
-# Definicion del directorio dentro del contenedor, para que todos los comandos sean ejecutados
-# en este directorio a no ser que se indique lo contrario
+# Evita prompts interactivos durante la instalación
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Definicion del directorio dentro del contenedor
 WORKDIR /app
 
-# Se copiaran todos los archivos y carpetas del diurectorio de mi proyecto local
-# (donde se encuentra este dockerfile) a el directorio /app dentro del contenedor docker.
-# Asi nuestro codigo fuente esta en nuestro entorno de desarrollo.
-COPY . /app
-
-## Instala CMake, build-essential, y las dependencias comunes de Crow
+# Instala CMake, build-essential, y las dependencias comunes de Crow
 RUN apt-get update && \
     apt-get install -y \
     cmake \
@@ -20,11 +17,17 @@ RUN apt-get update && \
     libboost-dev && \ 
     rm -rf /var/lib/apt/lists/*
 
-# Create a crea los directorios para la construccion del proyecto
-RUN mkdir build && \
+# Copia el código fuente
+COPY . .
+
+# Construye el proyecto
+RUN mkdir -p build && \
     cd build && \
     cmake .. && \
-    make
+    make -j$(nproc)
 
-# Define el comando para ejecutar la aplicación de servidor C++
+# Expone el puerto
+EXPOSE 8081
+
+# Ejecuta la aplicación
 CMD ["./build/CPUSimulator"]
