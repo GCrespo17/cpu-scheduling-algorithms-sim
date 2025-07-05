@@ -1,2 +1,4 @@
 core/build
 ui/node_modules
+.ui
+.vscode
