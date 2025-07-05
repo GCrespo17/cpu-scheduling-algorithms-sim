@@ -4,6 +4,7 @@
 #include "Process.hpp"
 #include "Fcfs.hpp"
 #include "sjf.hpp"
+#include "round_robin.hpp"
 #include <string>
 
 
@@ -35,6 +36,9 @@ void schedule(std::vector<Process>& processes, std::string algorithm, int quantu
             break;
         case SJF:
             runSJF(processes, onStateChange);
+            break;
+        case RR:
+            runRR(processes, quantum, onStateChange);
         default:
             std::cerr<< "Tipo de algoritmo no soportado"<<std::endl;
             break;

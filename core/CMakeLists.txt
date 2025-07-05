@@ -21,7 +21,6 @@ include_directories(
 add_executable(CPUSimulator
     server.cpp   #El archivo que contiene la logica de crow y ejecuta los procesos
     algorithms/priority.cpp
-    algorithms/round_robin.cpp
 )
 
 target_link_libraries(CPUSimulator
