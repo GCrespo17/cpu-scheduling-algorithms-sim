@@ -46,7 +46,7 @@ void runFCFS(std::vector<Process>& processes, std::function<void(const Process&)
         p.setStartTime(currentTime);
         p.setCurrentState(Process::State::RUNNING);
         onStateChange(p);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); //Simula
+        std::this_thread::sleep_for(std::chrono::milliseconds(p.getBurstTime()*1000)); //Simula
         // Ejecutar el proceso
         currentTime += p.getBurstTime();
 
