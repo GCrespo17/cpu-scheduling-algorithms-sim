@@ -11,7 +11,6 @@
           @clear-processes="clearProcesses"
           @algorithm-changed="updateSimulationConfig"
           @show-comparison="showComparisonPanel"
-          @run-all-algorithms="runAllAlgorithms"
           @clear-metrics="clearMetrics"
           @show-message="showMessage"
           @load-processes="loadProcesses"
@@ -105,7 +104,7 @@ export default {
       // Métricas
       currentMetrics: null,
       
-      // NUEVO: Panel de comparación
+      //Panel de comparación
       comparisonData: null,
       showComparison: false
     }
@@ -172,41 +171,6 @@ export default {
           );
         } else {
           throw new Error('Error al iniciar simulación');
-        }
-      } catch (error) {
-        this.showMessage('Error al conectar con el servidor: ' + error.message, 'alert-error');
-        this.simulationRunning = false;
-      }
-    },
-
-    async runAllAlgorithms() {
-      if (this.processes.length === 0) {
-        this.showMessage('No hay procesos para comparar', 'alert-error');
-        return;
-      }
-      
-      this.simulationRunning = true;
-      this.processStates = [];
-      this.currentMetrics = null;
-      
-      const simulationData = {
-        processes: this.processes,
-        quantum: this.simulationConfig.quantum
-      };
-      
-      try {
-        const response = await fetch('http://localhost:8081/api/run-all-algorithms', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(simulationData)
-        });
-        
-        if (response.ok) {
-          this.showMessage('Ejecutando todos los algoritmos...', 'alert-success');
-        } else {
-          throw new Error('Error al ejecutar comparación');
         }
       } catch (error) {
         this.showMessage('Error al conectar con el servidor: ' + error.message, 'alert-error');
