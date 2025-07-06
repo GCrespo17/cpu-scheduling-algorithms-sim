@@ -68,7 +68,7 @@ void runPriority(std::vector<Process>& processes, std::function<void(const Proce
         selectedProcess.setCurrentState(Process::RUNNING);
         onStateChange(selectedProcess);
         //Simulamos la ejecucion del proceso
-        std::this_thread::sleep_for(std::chrono::milliseconds(selectedProcess.getBurstTime()));
+        std::this_thread::sleep_for(std::chrono::milliseconds(selectedProcess.getBurstTime()*1000));
 
         //Completamos el proceso
         currentTime += selectedProcess.getBurstTime();
