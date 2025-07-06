@@ -14,6 +14,7 @@
           @run-all-algorithms="runAllAlgorithms"
           @clear-metrics="clearMetrics"
           @show-message="showMessage"
+          @load-processes="loadProcesses"
         />
 
         <!-- Lista de procesos -->
@@ -245,6 +246,51 @@ export default {
       }
     },
     
+    loadProcesses(processesData) {
+      // Limpiar procesos existentes
+      this.processes = [];
+      this.processStates = [];
+      this.currentMetrics = null;
+      
+      // Validar y agregar procesos
+      let addedCount = 0;
+      let duplicateCount = 0;
+      
+      processesData.forEach(processData => {
+        // Verificar si el ID ya existe
+        if (this.processes.some(p => p.id === processData.id)) {
+          duplicateCount++;
+          return;
+        }
+        
+        // Validar datos del proceso
+        if (processData.id > 0 && 
+            processData.arrivalTime >= 0 && 
+            processData.burstTime > 0 && 
+            processData.priority > 0) {
+          
+          this.processes.push({
+            id: processData.id,
+            arrivalTime: processData.arrivalTime,
+            burstTime: processData.burstTime,
+            priority: processData.priority
+          });
+          addedCount++;
+        }
+      });
+      
+      // Mostrar resumen
+      if (addedCount > 0) {
+        let message = `${addedCount} procesos cargados exitosamente`;
+        if (duplicateCount > 0) {
+          message += ` (${duplicateCount} duplicados omitidos)`;
+        }
+        this.showMessage(message, 'alert-success');
+      } else {
+        this.showMessage('No se pudieron cargar procesos válidos', 'alert-error');
+      }
+    },
+
     getAlgorithmName(algorithm) {
       const names = {
         'FCFS': 'FCFS',
