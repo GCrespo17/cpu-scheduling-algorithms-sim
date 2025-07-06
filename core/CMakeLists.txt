@@ -19,8 +19,7 @@ include_directories(
 # Añade el ejecutable principal de tu simulador.
 # Asegúrate de incluir main.cpp, ya que ahí estará tu servidor Crow.
 add_executable(CPUSimulator
-    server.cpp   #El archivo que contiene la logica de crow y ejecuta los procesos
-    algorithms/priority.cpp
+    server.cpp   #El archivo que contiene la logica de crow hace la llamada a scheduler que tiene la ejecucion de los algoritmos de planificacion
 )
 
 target_link_libraries(CPUSimulator
