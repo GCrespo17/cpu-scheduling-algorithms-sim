@@ -19,6 +19,15 @@
             {{ algorithm.icon }} {{ algorithm.name }} - {{ algorithm.description }}
           </option>
         </select>
+        
+        <!--Botón de comparación -->
+        <button 
+          class="btn btn-comparison" 
+          @click="showComparison"
+          title="Ver comparación de algoritmos"
+        >
+          📊 Comparar Algoritmos
+        </button>
       </div>
     </div>
 
@@ -34,6 +43,26 @@
           class="quantum-input"
         >
       </div>
+    </div>
+
+    <!--Sección de acciones rápidas -->
+    <div class="quick-actions">
+      <button 
+        class="btn btn-run-all" 
+        @click="runAllAlgorithms"
+        :disabled="!hasProcesses"
+        title="Ejecutar todos los algoritmos y mostrar comparación"
+      >
+        🚀 Ejecutar Todos los Algoritmos
+      </button>
+      
+      <button 
+        class="btn btn-clear-metrics" 
+        @click="clearMetrics"
+        title="Limpiar métricas anteriores"
+      >
+        🗑️ Limpiar Métricas
+      </button>
     </div>
 
     <!-- Formulario para agregar procesos -->
@@ -93,6 +122,12 @@
 <script>
 export default {
   name: 'ProcessForm',
+  props: {
+    hasProcesses: {
+      type: Boolean,
+      default: false
+    }
+  },
   data() {
     return {
       selectedAlgorithm: 'FCFS',
@@ -134,7 +169,6 @@ export default {
   methods: {
     selectAlgorithm(algorithmId) {
       this.selectedAlgorithm = algorithmId;
-      // Emitir el cambio de algoritmo al componente padre
       this.$emit('algorithm-changed', {
         algorithm: algorithmId,
         quantum: this.quantum
@@ -142,7 +176,6 @@ export default {
     },
     
     addProcess() {
-      // Validar datos básicos
       if (!this.newProcess.id || 
           this.newProcess.arrivalTime < 0 || 
           this.newProcess.burstTime <= 0) {
@@ -150,23 +183,18 @@ export default {
         return;
       }
       
-      // Validar prioridad para algoritmo PRIORITY
       if (this.selectedAlgorithm === 'PRIORITY' && this.newProcess.priority <= 0) {
         this.$emit('show-message', 'La prioridad debe ser mayor a 0', 'alert-error');
         return;
       }
       
-      // Preparar datos del proceso
       const processData = {
         ...this.newProcess,
-        // Solo incluir prioridad si el algoritmo la requiere
         priority: this.selectedAlgorithm === 'PRIORITY' ? this.newProcess.priority : 1
       };
       
-      // Emitir evento al componente padre
       const success = this.$emit('add-process', processData);
       
-      // Si se agregó exitosamente, incrementar ID
       if (success !== false) {
         this.newProcess.id++;
       }
@@ -175,12 +203,27 @@ export default {
     clearProcesses() {
       this.newProcess.id = 1;
       this.$emit('clear-processes');
+    },
+    
+    showComparison() {
+      this.$emit('show-comparison');
+    },
+    
+    runAllAlgorithms() {
+      if (!this.hasProcesses) {
+        this.$emit('show-message', 'Agregue al menos un proceso antes de ejecutar la comparación', 'alert-error');
+        return;
+      }
+      this.$emit('run-all-algorithms');
+    },
+    
+    clearMetrics() {
+      this.$emit('clear-metrics');
     }
   },
   
   watch: {
     quantum(newValue) {
-      // Notificar cambio de quantum si estamos en Round Robin
       if (this.selectedAlgorithm === 'RR') {
         this.$emit('algorithm-changed', {
           algorithm: this.selectedAlgorithm,
@@ -191,7 +234,6 @@ export default {
   },
   
   mounted() {
-    // Emitir el algoritmo inicial
     this.$emit('algorithm-changed', {
       algorithm: this.selectedAlgorithm,
       quantum: this.quantum
@@ -221,7 +263,6 @@ export default {
   font-size: 1.2em;
 }
 
-/* Selector de algoritmo compacto */
 .algorithm-selector {
   margin-bottom: 25px;
 }
@@ -229,7 +270,8 @@ export default {
 .algorithm-compact {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .algorithm-select {
@@ -255,12 +297,74 @@ export default {
   border-color: #667eea;
 }
 
-.algorithm-select option {
-  padding: 10px;
+/* NUEVOS ESTILOS PARA BOTONES */
+.btn-comparison {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
   font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
-/* Sección de quantum compacta */
+.btn-comparison:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
+
+.quick-actions {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.btn-run-all {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 200px;
+}
+
+.btn-run-all:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
+}
+
+.btn-run-all:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-clear-metrics {
+  background: #6c757d;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-clear-metrics:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
 .quantum-section {
   background: #e3f2fd;
   padding: 15px;
@@ -285,7 +389,6 @@ export default {
   max-width: 100px;
 }
 
-/* Formulario de procesos */
 .process-form {
   background: white;
   padding: 20px;
@@ -363,8 +466,24 @@ export default {
   transform: translateY(-2px);
 }
 
-/* Responsivo */
 @media (max-width: 768px) {
+  .algorithm-compact {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .algorithm-select {
+    max-width: 100%;
+  }
+  
+  .quick-actions {
+    flex-direction: column;
+  }
+  
+  .btn-run-all {
+    min-width: auto;
+  }
+  
   .quantum-section .form-group {
     flex-direction: column;
     align-items: flex-start;
@@ -373,10 +492,6 @@ export default {
   
   .quantum-section label {
     min-width: auto;
-  }
-  
-  .algorithm-select {
-    max-width: 100%;
   }
 }
 </style>
