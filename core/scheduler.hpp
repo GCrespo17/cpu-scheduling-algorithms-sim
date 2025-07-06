@@ -7,6 +7,7 @@
 #include "round_robin.hpp"
 #include "priority.hpp"
 #include <string>
+#include "Metric.hpp"
 
 
 enum pType{
@@ -48,6 +49,9 @@ void schedule(std::vector<Process>& processes, std::string algorithm, int quantu
             std::cerr<< "Tipo de algoritmo no soportado"<<std::endl;
             break;
     }
+
+    calculateMetrics(processes, algorithm, quantum);
+
 }
 
 

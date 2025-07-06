@@ -14,12 +14,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories(
     libs 
     algorithms
-    process-metrics) 
+    process-metrics
+    metrics    
+) 
 
 # Añade el ejecutable principal de tu simulador.
 # Asegúrate de incluir main.cpp, ya que ahí estará tu servidor Crow.
 add_executable(CPUSimulator
     server.cpp   #El archivo que contiene la logica de crow hace la llamada a scheduler que tiene la ejecucion de los algoritmos de planificacion
+    metrics/metric.cpp
 )
 
 target_link_libraries(CPUSimulator

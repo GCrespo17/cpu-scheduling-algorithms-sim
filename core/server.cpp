@@ -2,15 +2,14 @@
 
 #include "crow_all.h"
 #include "Process.hpp"
-#include "Fcfs.hpp"
 #include "Process-json.hpp"
 #include "scheduler.hpp"
+#include "metrics/metrics_notify.hpp"
 #include <string>
 #include <vector>
 #include <thread>
 #include <mutex>
 #include <set> 
-
 
 std::set<crow::websocket::connection*> connections;
 std::mutex connMutex;
@@ -44,7 +43,6 @@ std::vector<Process> parseProcessesFromJson(const crow::json::rvalue& json){
     }
     return result;
 }
-
 
 void notifyClients(const Process& p){
     auto json = processToJson(p).dump();
@@ -98,7 +96,7 @@ int main(){
 
         std::string algorithm = "FCFS";
         if(body.has("algorithm")){
-            algorithm=body["algorithm"].s();
+            algorithm = body["algorithm"].s();
         }
 
         int quantum = 2;
@@ -114,11 +112,75 @@ int main(){
         }
 
         std::thread([processes, algorithm, quantum]() mutable{
-            schedule(processes, algorithm, quantum, notifyClients); //Funcion que ejecuta los algoritmos de planificacion segun los parametros dados
+            schedule(processes, algorithm, quantum, notifyClients);
+            if(!allMetrics.empty()){
+                Metric lastMetric = allMetrics.back();
+                notifyMetrics(lastMetric);
+            }
         }).detach();
 
         return crow::response(200, "Simulation Started");
+    });
+
+    // Obtener panel de comparación
+    CROW_ROUTE(app, "/api/comparison-panel").methods("GET"_method)
+    ([](const crow::request& req){
+        if (allMetrics.empty()) {
+            return crow::response(404, "{\"error\":\"No metrics available\"}");
+        }
         
+        // Enviar comparación por WebSocket
+        notifyComparison();
+        
+        return crow::response(200, "{\"status\":\"comparison_sent\"}");
+    });
+
+    //Ejecutar comparación completa de 4 algoritmos
+    CROW_ROUTE(app, "/api/run-all-algorithms").methods("POST"_method)
+    ([](const crow::request& req){
+        auto body = crow::json::load(req.body);
+        if(!body){
+            return crow::response(400, "Invalid JSON");
+        }
+        
+        std::vector<Process> originalProcesses = parseProcessesFromJson(body["processes"]);
+        
+        
+        int quantum = 2;
+        if(body.has("quantum")){
+            quantum = body["quantum"].i();
+        }
+        
+        std::thread([originalProcesses, quantum]() mutable {
+            // Limpiar métricas anteriores para comparación limpia
+            clearAllMetrics();
+            
+            std::vector<std::string> algorithms = {"FCFS", "SJF", "RR", "PRIORITY"};
+            
+            for (const std::string& algo : algorithms) {
+                // Copiar procesos para cada algoritmo
+                std::vector<Process> processes = originalProcesses;
+                
+                // Ejecutar simulación
+                schedule(processes, algo, quantum, notifyClients);
+                
+                // Pequeña pausa entre algoritmos
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            }
+            
+            // Enviar comparación final automáticamente
+            notifyComparison();
+            
+        }).detach();
+        
+        return crow::response(200, "Running all algorithms");
+    });
+
+    // Limpiar métricas
+    CROW_ROUTE(app, "/api/clear-metrics").methods("POST"_method)
+    ([](const crow::request& req){
+        clearAllMetrics();
+        return crow::response(200, "Metrics cleared");
     });
 
     app.port(8081).multithreaded().run();
