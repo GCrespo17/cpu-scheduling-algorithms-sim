@@ -5,6 +5,7 @@
 #include "Process-json.hpp"
 #include "scheduler.hpp"
 #include "metrics/metrics_notify.hpp"
+#include "file_loader.hpp"
 #include <string>
 #include <vector>
 #include <thread>
@@ -181,6 +182,111 @@ int main(){
     ([](const crow::request& req){
         clearAllMetrics();
         return crow::response(200, "Metrics cleared");
+    });
+
+    //Cargar procesos desde archivo
+    CROW_ROUTE(app, "/api/load-processes").methods("GET"_method)
+        ([](const crow::request& req){
+            // Intentar cargar desde diferentes ubicaciones
+            std::vector<std::string> possiblePaths = {
+                "file-loader/processes.txt",
+                "processes.txt",
+            };
+            
+            std::vector<Process> processes;
+            std::string usedPath = "";
+            
+            for (const auto& path : possiblePaths) {
+                processes = FileLoader::loadProcessesFromFile(path);
+                if (!processes.empty()) {
+                    usedPath = path;
+                    break;
+                }
+            }
+            
+            if (processes.empty()) {
+                return crow::response(404, "{\"error\":\"No se encontró el archivo de procesos o está vacío\"}");
+            }
+            
+            // Convertir procesos a JSON
+            crow::json::wvalue json;
+            json["processes"] = crow::json::wvalue::list();
+            json["count"] = (int)processes.size();
+            json["source"] = usedPath;
+            
+            for (size_t i = 0; i < processes.size(); i++) {
+                crow::json::wvalue processJson;
+                processJson["id"] = processes[i].getId();
+                processJson["arrivalTime"] = processes[i].getArrivalTime();
+                processJson["burstTime"] = processes[i].getBurstTime();
+                processJson["priority"] = processes[i].getPriority();
+                json["processes"][i] = std::move(processJson);
+            }
+            
+            return crow::response(200, json.dump());
+        });
+
+    //Obtener archivos disponibles
+    CROW_ROUTE(app, "/api/available-files").methods("GET"_method)
+        ([](const crow::request& req){
+            std::vector<std::string> availableFiles;
+            std::vector<std::string> checkPaths = {
+                "file-loader/processes.txt",
+                "processes.txt",
+                "data/processes.txt",
+                "processes1.txt", 
+                "processes2.txt",
+                "test_processes.txt"
+            };
+            
+            for (const auto& path : checkPaths) {
+                std::ifstream file(path);
+                if (file.good()) {
+                    availableFiles.push_back(path);
+                }
+                file.close();
+            }
+            
+            crow::json::wvalue json;
+            json["files"] = crow::json::wvalue::list();
+            
+            for (size_t i = 0; i < availableFiles.size(); i++) {
+                json["files"][i] = availableFiles[i];
+            }
+            
+            return crow::response(200, json.dump());
+        });
+
+//Cargar desde archivo específico
+    CROW_ROUTE(app, "/api/load-processes/<string>").methods("GET"_method)
+    ([](const crow::request& req, const std::string& filename){
+        // Validar nombre de archivo (seguridad básica)
+        if (filename.find("..") != std::string::npos || filename.find("/") != std::string::npos) {
+            return crow::response(400, "{\"error\":\"Nombre de archivo inválido\"}");
+        }
+        
+        std::vector<Process> processes = FileLoader::loadProcessesFromFile(filename);
+        
+        if (processes.empty()) {
+            return crow::response(404, "{\"error\":\"Archivo no encontrado o vacío: " + filename + "\"}");
+        }
+        
+        // Convertir a JSON
+        crow::json::wvalue json;
+        json["processes"] = crow::json::wvalue::list();
+        json["count"] = (int)processes.size();
+        json["source"] = filename;
+        
+        for (size_t i = 0; i < processes.size(); i++) {
+            crow::json::wvalue processJson;
+            processJson["id"] = processes[i].getId();
+            processJson["arrivalTime"] = processes[i].getArrivalTime();
+            processJson["burstTime"] = processes[i].getBurstTime();
+            processJson["priority"] = processes[i].getPriority();
+            json["processes"][i] = std::move(processJson);
+        }
+        
+        return crow::response(200, json.dump());
     });
 
     app.port(8081).multithreaded().run();
