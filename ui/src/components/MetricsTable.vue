@@ -95,10 +95,6 @@
         <span class="summary-label">⚡ Proceso Más Rápido:</span>
         <span class="summary-value">P{{ getFastestProcess().id }} ({{ getFastestProcess().turnaroundTime }}s turnaround)</span>
       </div>
-      <div class="summary-item">
-        <span class="summary-label">📊 Rendimiento General:</span>
-        <span class="summary-value" :class="getPerformanceClass()">{{ getPerformanceRating() }}</span>
-      </div>
     </div>
   </div>
 </template>
@@ -158,23 +154,6 @@ export default {
       return { id: fastest.id, turnaroundTime: fastest.turnaroundTime };
     },
     
-    getPerformanceRating() {
-      const cpu = this.metrics.cpuUtilization;
-      const avgWaiting = this.metrics.avgWaitingTime;
-      
-      if (cpu >= 85 && avgWaiting <= 3) return 'Excelente';
-      if (cpu >= 70 && avgWaiting <= 5) return 'Bueno';
-      if (cpu >= 50 && avgWaiting <= 8) return 'Regular';
-      return 'Mejorable';
-    },
-    
-    getPerformanceClass() {
-      const rating = this.getPerformanceRating();
-      if (rating === 'Excelente') return 'excellent';
-      if (rating === 'Bueno') return 'good';
-      if (rating === 'Regular') return 'average';
-      return 'poor';
-    }
   }
 }
 </script>

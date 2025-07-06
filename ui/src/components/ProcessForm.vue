@@ -48,14 +48,6 @@
 
     <!--Sección de acciones rápidas -->
     <div class="quick-actions">
-      <button 
-        class="btn btn-run-all" 
-        @click="runAllAlgorithms"
-        :disabled="!hasProcesses"
-        title="Ejecutar todos los algoritmos y mostrar comparación"
-      >
-        🚀 Ejecutar Todos los Algoritmos
-      </button>
       
       <button 
         class="btn btn-load-processes" 
@@ -218,14 +210,6 @@ export default {
       this.$emit('show-comparison');
     },
     
-    runAllAlgorithms() {
-      if (!this.hasProcesses) {
-        this.$emit('show-message', 'Agregue al menos un proceso antes de ejecutar la comparación', 'alert-error');
-        return;
-      }
-      this.$emit('run-all-algorithms');
-    },
-    
     clearMetrics() {
       this.$emit('clear-metrics');
     },
@@ -369,31 +353,6 @@ export default {
   gap: 15px;
   margin-bottom: 25px;
   flex-wrap: wrap;
-}
-
-.btn-run-all {
-  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-  color: white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  flex: 1;
-  min-width: 200px;
-}
-
-.btn-run-all:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
-}
-
-.btn-run-all:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-  transform: none;
 }
 
 .btn-load-processes {

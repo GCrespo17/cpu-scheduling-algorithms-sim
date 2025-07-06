@@ -6,32 +6,6 @@
       <button class="close-btn" @click="$emit('close')">✕</button>
     </div>
 
-    <!-- Resumen Ejecutivo -->
-    <div class="executive-summary">
-      <div class="winner-card">
-        <h3>🎯 Algoritmo Recomendado</h3>
-        <div class="winner-name">{{ comparisonData.overallBest }}</div>
-        <div class="winner-details">
-          Mejor rendimiento general para este conjunto de procesos
-        </div>
-      </div>
-      
-      <div class="quick-stats">
-        <div class="stat-item">
-          <span class="stat-label">Algoritmos Analizados</span>
-          <span class="stat-value">{{ comparisonData.totalAlgorithms }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Mejor Turnaround</span>
-          <span class="stat-value">{{ comparisonData.bestTurnaround }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Mejor CPU Util.</span>
-          <span class="stat-value">{{ comparisonData.bestCpu }}</span>
-        </div>
-      </div>
-    </div>
-
     <!-- Tabla Comparativa -->
     <div class="comparison-table">
       <h3>📊 Tabla Comparativa de Métricas</h3>
@@ -261,43 +235,6 @@ export default {
 .close-btn:hover {
   background: #c82333;
   transform: scale(1.1);
-}
-
-.executive-summary {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  margin-bottom: 30px;
-}
-
-.winner-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 25px;
-  border-radius: 15px;
-  text-align: center;
-}
-
-.winner-card h3 {
-  margin: 0 0 15px 0;
-  font-size: 1.2em;
-}
-
-.winner-name {
-  font-size: 2.5em;
-  font-weight: bold;
-  margin: 15px 0;
-}
-
-.winner-details {
-  opacity: 0.9;
-  font-size: 1.1em;
-}
-
-.quick-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
 }
 
 .stat-item {
@@ -580,9 +517,6 @@ tr:hover {
     padding: 20px;
   }
   
-  .executive-summary {
-    grid-template-columns: 1fr;
-  }
   
   .gantt-chart {
     overflow-x: auto;
