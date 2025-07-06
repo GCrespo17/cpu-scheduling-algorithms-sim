@@ -157,7 +157,7 @@ std::string generateRecommendation(const std::vector<Metric>& metrics) {
         } else if (algo == "RR") {
             recommendation += "• Round Robin: Justo y responsivo, overhead por cambios de contexto.\n";
         } else if (algo == "PRIORITY") {
-            recommendation += "• Priority: Control fino de prioridades, cuidado con starvation.\n";
+            recommendation += "• Priority: Control fino de prioridades, riesgo de starvation.\n";
         }
     }
     
