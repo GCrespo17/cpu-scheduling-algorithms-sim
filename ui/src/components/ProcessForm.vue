@@ -1,3 +1,4 @@
+<!-- Actualizar ProcessForm.vue -->
 <template>
   <div class="form-section">
     <h2>📝 Configurar Simulación</h2>
@@ -54,6 +55,14 @@
         title="Ejecutar todos los algoritmos y mostrar comparación"
       >
         🚀 Ejecutar Todos los Algoritmos
+      </button>
+      
+      <button 
+        class="btn btn-load-processes" 
+        @click="loadProcessesFromFile"
+        title="Cargar procesos desde archivo"
+      >
+        📁 Cargar Procesos
       </button>
       
       <button 
@@ -204,7 +213,7 @@ export default {
       this.newProcess.id = 1;
       this.$emit('clear-processes');
     },
-    
+
     showComparison() {
       this.$emit('show-comparison');
     },
@@ -219,6 +228,46 @@ export default {
     
     clearMetrics() {
       this.$emit('clear-metrics');
+    },
+    
+    //Cargar procesos desde archivo
+    async loadProcessesFromFile() {
+      try {
+        this.$emit('show-message', 'Cargando procesos desde archivo...', 'alert-success');
+        
+        const response = await fetch('http://localhost:8081/api/load-processes');
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Emitir evento para cargar procesos en el componente padre
+          this.$emit('load-processes', data.processes);
+          
+          this.$emit('show-message', 
+            `${data.count} procesos cargados desde ${data.source}`, 
+            'alert-success'
+          );
+          
+          // Resetear ID para nuevos procesos
+          if (data.processes.length > 0) {
+            const maxId = Math.max(...data.processes.map(p => p.id));
+            this.newProcess.id = maxId + 1;
+          }
+          
+        } else {
+          const errorData = await response.json();
+          this.$emit('show-message', 
+            errorData.error || 'Error al cargar procesos', 
+            'alert-error'
+          );
+        }
+        
+      } catch (error) {
+        this.$emit('show-message', 
+          'Error de conexión al cargar procesos: ' + error.message, 
+          'alert-error'
+        );
+      }
     }
   },
   
@@ -297,7 +346,6 @@ export default {
   border-color: #667eea;
 }
 
-/* NUEVOS ESTILOS PARA BOTONES */
 .btn-comparison {
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
   color: white;
@@ -346,6 +394,24 @@ export default {
   background: #6c757d;
   cursor: not-allowed;
   transform: none;
+}
+
+.btn-load-processes {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-load-processes:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
 }
 
 .btn-clear-metrics {
