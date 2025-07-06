@@ -97,7 +97,7 @@
             min="1"
           >
         </div>
-        <div class="form-group" v-if="selectedAlgorithm === 'PRIORITY'">
+        <div class="form-group">
           <label>Prioridad:</label>
           <input 
             type="number" 
