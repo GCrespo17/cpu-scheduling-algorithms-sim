@@ -69,7 +69,7 @@ void runRR(std::vector<Process>& processes, int quantum, std::function<void(cons
         onStateChange(currentProcess);
 
         //Calculamos el tiempo de ejecucion
-        //El tiempo de ejecucion puede ser el menor quantum o tiempo restante
+        //El tiempo de ejecucion puede ser el menor entre quantum o tiempo restante
         int executeTime = std::min(quantum, remainingTime[currentProcessIndex]);
         
         //Simulamos la ejecucion mientras esta RUNNING
