@@ -5,6 +5,7 @@
 #include "Fcfs.hpp"
 #include "sjf.hpp"
 #include "round_robin.hpp"
+#include "priority.hpp"
 #include <string>
 
 
@@ -39,6 +40,10 @@ void schedule(std::vector<Process>& processes, std::string algorithm, int quantu
             break;
         case RR:
             runRR(processes, quantum, onStateChange);
+            break;
+        case PRIORITY:
+            runPriority(processes, onStateChange);
+            break;
         default:
             std::cerr<< "Tipo de algoritmo no soportado"<<std::endl;
             break;
