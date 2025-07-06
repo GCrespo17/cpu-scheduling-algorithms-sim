@@ -19,7 +19,6 @@
               <th>Avg Respuesta</th>
               <th>CPU Utilización</th>
               <th>Tiempo Total</th>
-              <th>Puntuación</th>
             </tr>
           </thead>
           <tbody>
@@ -46,11 +45,6 @@
                 </div>
               </td>
               <td>{{ algorithm.totalTime }}s</td>
-              <td>
-                <div class="score-badge" :class="getScoreClass(calculateScore(algorithm))">
-                  {{ calculateScore(algorithm).toFixed(0) }}
-                </div>
-              </td>
             </tr>
           </tbody>
         </table>
@@ -135,18 +129,6 @@ export default {
         'PRIORITY': 'priority'
       };
       return classes[algorithm] || 'default';
-    },
-
-    calculateScore(algorithm) {
-      // Score simple: CPU utilization - tiempo de espera promedio
-      return Math.max(0, algorithm.cpuUtilization - algorithm.avgWaitingTime);
-    },
-
-    getScoreClass(score) {
-      if (score >= 80) return 'excellent';
-      if (score >= 60) return 'good';
-      if (score >= 40) return 'average';
-      return 'poor';
     },
 
     getMaxTime(chart) {
@@ -339,20 +321,6 @@ tr:hover {
   font-weight: bold;
   color: #333;
 }
-
-.score-badge {
-  padding: 4px 8px;
-  border-radius: 15px;
-  color: white;
-  font-weight: bold;
-  text-align: center;
-  min-width: 40px;
-}
-
-.score-badge.excellent { background: #28a745; }
-.score-badge.good { background: #ffc107; color: #333; }
-.score-badge.average { background: #fd7e14; }
-.score-badge.poor { background: #dc3545; }
 
 .gantt-section {
   margin-bottom: 30px;
