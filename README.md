@@ -49,7 +49,7 @@ cd cpu-scheduler-simulator
 
 2. **Ejecutar con Docker Compose**
 ```bash
-docker-compose up --build
+docker-compose up -d
 ```
 
 3. **Acceder a la aplicación**
