@@ -1,5 +1,4 @@
-# Use a Node.js image to build the Vue application
-# La etapa de 'build-stage' compilará tu aplicación Vue.js
+#Utilizamos la version Long Term Support de Vue
 FROM node:lts-alpine AS build-stage
 
 # Establecer el directorio de trabajo
