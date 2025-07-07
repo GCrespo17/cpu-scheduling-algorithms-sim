@@ -121,5 +121,8 @@ Metric calculateMetrics(std::vector<Process>& processes, const std::string& algo
 void clearAllMetrics();
 std::string findBestAlgorithm(const std::string& criterion);
 std::string findOverallBest();
+std::string findBestAlgorithmFromSet(const std::vector<Metric>& metrics, const std::string& criterion);
+std::string findOverallBestFromSet(const std::vector<Metric>& metrics);
+std::string generateRecommendation(const std::vector<Metric>& metrics);
 
 #endif //METRIC_HPP

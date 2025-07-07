@@ -1,11 +1,9 @@
-#ifndef SCHEDULER_HPP
-#define SCHEDULER_HPP
-
 #include "Process.hpp"
 #include "Fcfs.hpp"
 #include "sjf.hpp"
 #include "round_robin.hpp"
 #include "priority.hpp"
+#include "scheduler.hpp"
 #include <string>
 #include "Metric.hpp"
 
@@ -53,7 +51,3 @@ void schedule(std::vector<Process>& processes, std::string algorithm, int quantu
     calculateMetrics(processes, algorithm, quantum);
 
 }
-
-
-
-#endif //SCHEDULER_HPP
