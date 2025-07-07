@@ -88,10 +88,6 @@
     <!-- Resumen Rápido -->
     <div class="quick-summary">
       <div class="summary-item">
-        <span class="summary-label">🏆 Mejor Proceso:</span>
-        <span class="summary-value">P{{ getBestProcess().id }} ({{ getBestProcess().efficiency }}% eficiencia)</span>
-      </div>
-      <div class="summary-item">
         <span class="summary-label">⚡ Proceso Más Rápido:</span>
         <span class="summary-value">P{{ getFastestProcess().id }} ({{ getFastestProcess().turnaroundTime }}s turnaround)</span>
       </div>
