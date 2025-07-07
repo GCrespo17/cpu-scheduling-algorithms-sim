@@ -5,4 +5,4 @@ Comando para ejecutar el proyecto:
 docker-compose up -d
 
 Puerto para el front del proyecto:
-http://localhost:5173/
+http://localhost:5173/ n
