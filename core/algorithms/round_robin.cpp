@@ -1,7 +1,5 @@
-#ifndef ROUND_ROBIN_HPP
-#define ROUND_ROBIN_HPP
-
 #include "Process.hpp"
+#include "round_robin.hpp"
 #include <vector>
 #include <thread>
 #include <chrono>
@@ -116,6 +114,3 @@ void runRR(std::vector<Process>& processes, int quantum, std::function<void(cons
     }
     //ROUND ROBIN COMPLETADO
 }
-
-
-#endif //ROUND_ROBIN

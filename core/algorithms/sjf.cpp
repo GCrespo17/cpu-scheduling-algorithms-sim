@@ -1,7 +1,5 @@
-#ifndef SJF_HPP
-#define SJF_HPP
-
 #include "Process.hpp"
+#include "sjf.hpp"
 #include <vector>
 #include <thread>
 #include <chrono>
@@ -22,13 +20,6 @@ void runSJF(std::vector<Process>& processes, std::function<void(const Process&)>
     std::vector<bool> completedProcesses(processes.size(), false); 
 
     int completedCount = 0; //Contador de procesos terminados
-
-    // ========== EJEMPLO CON 3 PROCESOS ==========
-    // Si tienes 3 procesos: P1, P2, P3
-    // completed = [false, false, false]
-    //              ↑       ↑       ↑
-    //             P1      P2      P3
-    //           (índice 0)(índice 1)(índice 2)
 
     while(completedCount<processes.size()){
         //Buscamos los procesos disponibles que aun no han terminado
@@ -92,6 +83,3 @@ void runSJF(std::vector<Process>& processes, std::function<void(const Process&)>
 
     
 }
-
-
-#endif //SJF_HPP

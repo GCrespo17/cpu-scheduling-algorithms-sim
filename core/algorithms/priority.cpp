@@ -1,7 +1,5 @@
-#ifndef PRIORITY_HPP
-#define PRIORITY_HPP
-
 #include "Process.hpp"
+#include "priority.hpp"
 #include <vector>
 #include <thread>
 #include <chrono>
@@ -92,6 +90,3 @@ void runPriority(std::vector<Process>& processes, std::function<void(const Proce
     }
 
 }
-
-
-#endif //PRIORITY_HPP

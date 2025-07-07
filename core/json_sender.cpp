@@ -1,22 +1,72 @@
-#ifndef METRICS_JSON_HPP
-#define METRICS_JSON_HPP
-
 #include "crow_all.h"
+#include "Process.hpp"
 #include "Metric.hpp"
+#include "json_sender.hpp"
 #include <mutex>
 #include <set>
 #include <ctime>
 
-// Declarar variables externas del servidor
-extern std::set<crow::websocket::connection*> connections;
-extern std::mutex connMutex;
-extern std::vector<Metric> allMetrics;
 
-// Declarar funciones auxiliares
-std::string findBestAlgorithmFromSet(const std::vector<Metric>& metrics, const std::string& criterion);
-std::string findOverallBestFromSet(const std::vector<Metric>& metrics);
-std::string generateRecommendation(const std::vector<Metric>& metrics);
-crow::json::wvalue generateGanttData(const std::vector<Metric>& metrics);
+//-------------------------------------------------------------------------------------------------//
+//----------------------------------------------PROCESS-------------------------------------------//
+//-----------------------------------------------------------------------------------------------//
+
+crow::json::wvalue processToJson(const Process& p) {
+    crow::json::wvalue x;
+    x["id"] = p.getId();
+    x["arrival_time"] = p.getArrivalTime();
+    x["burst_time"] = p.getBurstTime();
+    x["priority"] = p.getPriority();
+    x["state"] = p.getCurrentState(); // O puedes mapear a string si prefieres
+    x["start_time"] = p.getStartTime();
+    x["completion_time"] = p.getCompletionTime();
+    x["turnaround_time"] = p.getTurnaroundTime();
+    x["waiting_time"] = p.getWaitingTime();
+    x["response_time"] = p.getResponseTime();
+    return x;
+}
+
+std::vector<Process> parseProcessesFromJson(const crow::json::rvalue& json){
+    std::vector<Process> result;
+    if(!json){
+        return result;
+    }
+    // Iterar sobre el array de procesos
+    for(const auto& p: json){
+        // Verificar que todos los campos requeridos existen
+        if(!p.has("id") || !p.has("arrivalTime") || !p.has("burstTime")){
+            continue; // Saltar procesos con datos incompletos
+        }
+        
+        // Extraer prioridad (con valor por defecto si no existe)
+        int priority = 1;
+        if(p.has("priority")){
+            priority = p["priority"].i();
+        }
+        
+        Process proc(
+            p["id"].i(),
+            p["arrivalTime"].i(),
+            p["burstTime"].i(),
+            priority
+        );
+        result.push_back(proc);
+    }
+    return result;
+}
+
+void notifyClients(const Process& p){
+    auto json = processToJson(p).dump();
+    std::lock_guard<std::mutex> lock(connMutex);
+    for(auto* conn: connections){
+        conn->send_text(json);
+    }
+}
+
+
+//-------------------------------------------------------------------------------------------------//
+//----------------------------------------------METRICS-------------------------------------------//
+//-----------------------------------------------------------------------------------------------//
 
 crow::json::wvalue metricToJson(const Metric& metric) {
     crow::json::wvalue json;
@@ -102,66 +152,6 @@ void notifyComparison() {
     for(auto* conn: connections) {
         conn->send_text(jsonStr);
     }
-}
-
-// Implementaciones de funciones auxiliares
-std::string findBestAlgorithmFromSet(const std::vector<Metric>& metrics, const std::string& criterion) {
-    if (metrics.empty()) return "N/A";
-    
-    auto best = metrics.begin();
-    for (auto it = metrics.begin(); it != metrics.end(); ++it) {
-        if (criterion == "turnaround" && it->getAvgTurnaroundTime() < best->getAvgTurnaroundTime()) {
-            best = it;
-        } else if (criterion == "waiting" && it->getAvgWaitingTime() < best->getAvgWaitingTime()) {
-            best = it;
-        } else if (criterion == "response" && it->getAvgResponseTime() < best->getAvgResponseTime()) {
-            best = it;
-        } else if (criterion == "cpu" && it->getCpuUtilization() > best->getCpuUtilization()) {
-            best = it;
-        }
-    }
-    return best->getAlgorithmName();
-}
-
-std::string findOverallBestFromSet(const std::vector<Metric>& metrics) {
-    if (metrics.empty()) return "N/A";
-    
-    auto best = metrics.begin();
-    double bestScore = best->getCpuUtilization() - best->getAvgWaitingTime();
-    
-    for (auto it = metrics.begin(); it != metrics.end(); ++it) {
-        double score = it->getCpuUtilization() - it->getAvgWaitingTime();
-        if (score > bestScore) {
-            bestScore = score;
-            best = it;
-        }
-    }
-    return best->getAlgorithmName();
-}
-
-std::string generateRecommendation(const std::vector<Metric>& metrics) {
-    if (metrics.empty()) return "No hay datos para analizar.";
-    
-    std::string best = findOverallBestFromSet(metrics);
-    
-    std::string recommendation = "Basado en el analisis de " + std::to_string(metrics.size()) + " algoritmos:\n\n";
-    recommendation += "ALGORITMO RECOMENDADO: " + best + "\n\n";
-    
-    // Análisis por tipo de algoritmo
-    for (const auto& metric : metrics) {
-        std::string algo = metric.getAlgorithmName();
-        if (algo == "FCFS") {
-            recommendation += "• FCFS: Simple y predecible, pero puede sufrir el 'convoy effect'.\n";
-        } else if (algo == "SJF") {
-            recommendation += "• SJF: Excelente para minimizar tiempo de espera, riesgo de starvation.\n";
-        } else if (algo == "RR") {
-            recommendation += "• Round Robin: Justo y responsivo, overhead por cambios de contexto.\n";
-        } else if (algo == "PRIORITY") {
-            recommendation += "• Priority: Control fino de prioridades, riesgo de starvation.\n";
-        }
-    }
-    
-    return recommendation;
 }
 
 crow::json::wvalue generateGanttData(const std::vector<Metric>& metrics) {
@@ -268,6 +258,3 @@ crow::json::wvalue generateGanttData(const std::vector<Metric>& metrics) {
     
     return ganttData;
 }
-
-
-#endif //METRICS_JSON_HPP

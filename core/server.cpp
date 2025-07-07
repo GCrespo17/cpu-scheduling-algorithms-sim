@@ -1,11 +1,9 @@
 #define CROW_ENABLE_CORS
-
 #include "crow_all.h"
 #include "Process.hpp"
-#include "Process-json.hpp"
 #include "scheduler.hpp"
-#include "metrics/metrics_notify.hpp"
 #include "file_loader.hpp"
+#include "json_sender.hpp"
 #include <string>
 #include <vector>
 #include <thread>
@@ -15,43 +13,6 @@
 std::set<crow::websocket::connection*> connections;
 std::mutex connMutex;
 std::vector<Process> lastRecievedProcesses;
-
-std::vector<Process> parseProcessesFromJson(const crow::json::rvalue& json){
-    std::vector<Process> result;
-    if(!json){
-        return result;
-    }
-    // Iterar sobre el array de procesos
-    for(const auto& p: json){
-        // Verificar que todos los campos requeridos existen
-        if(!p.has("id") || !p.has("arrivalTime") || !p.has("burstTime")){
-            continue; // Saltar procesos con datos incompletos
-        }
-        
-        // Extraer prioridad (con valor por defecto si no existe)
-        int priority = 1;
-        if(p.has("priority")){
-            priority = p["priority"].i();
-        }
-        
-        Process proc(
-            p["id"].i(),
-            p["arrivalTime"].i(),
-            p["burstTime"].i(),
-            priority
-        );
-        result.push_back(proc);
-    }
-    return result;
-}
-
-void notifyClients(const Process& p){
-    auto json = processToJson(p).dump();
-    std::lock_guard<std::mutex> lock(connMutex);
-    for(auto* conn: connections){
-        conn->send_text(json);
-    }
-}
 
 int main(){
     // Usar CORSHandler en lugar de la estructura personalizada
@@ -148,7 +109,7 @@ int main(){
         ([](const crow::request& req){
             // Intentar cargar desde diferentes ubicaciones
             std::vector<std::string> possiblePaths = {
-                "file-loader/processes.txt",
+                "files/processes.txt",
                 "processes.txt",
             };
             

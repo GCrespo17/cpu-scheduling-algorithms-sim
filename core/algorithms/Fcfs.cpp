@@ -1,7 +1,5 @@
-#ifndef FCFS_HPP
-#define FCFS_HPP
-
 #include "Process.hpp"
+#include "Fcfs.hpp"
 #include <vector>
 #include <thread>
 #include <chrono>
@@ -59,5 +57,3 @@ void runFCFS(std::vector<Process>& processes, std::function<void(const Process&)
         std::this_thread::sleep_for(std::chrono::milliseconds(500)); //Simula
     }
 }
-
-#endif //FCFS_HPP
