@@ -157,12 +157,11 @@ Formato: `ID ArrivalTime BurstTime Priority`
 ## Cómo Usar
 
 1. **Agregar Procesos**: Usa el formulario para agregar procesos individualmente
-2. **Cargar desde Archivo**: Importa procesos desde un archivo de texto
-3. **Seleccionar Algoritmo**: Elige entre FCFS, SJF, Round Robin o Priority
-4. **Configurar Quantum**: Para Round Robin, establece el valor del quantum
-5. **Iniciar Simulación**: Observa la ejecución en tiempo real
-6. **Ver Métricas**: Analiza las métricas de rendimiento
-7. **Comparar Algoritmos**: Usa el panel de comparación para evaluar diferentes enfoques
+2. **Seleccionar Algoritmo**: Elige entre FCFS, SJF, Round Robin o Priority
+3. **Configurar Quantum**: Para Round Robin, establece el valor del quantum
+4. **Iniciar Simulación**: Observa la ejecución en tiempo real
+5. **Ver Métricas**: Analiza las métricas de rendimiento
+6. **Comparar Algoritmos**: Usa el panel de comparación para evaluar diferentes enfoques
 
 ## Desarrollo
 
